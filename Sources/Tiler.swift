@@ -22,29 +22,41 @@ package enum Tiler {
     }
 
     private static func tileFrames(count: Int, screen: CGRect) -> [CGRect] {
+        let outer = Config.shared.outerGap
+        let inner = Config.shared.innerGap
+
+        let inset = CGRect(
+            x: screen.origin.x + outer,
+            y: screen.origin.y + outer,
+            width: screen.width - 2 * outer,
+            height: screen.height - 2 * outer
+        )
+
         if count == 1 {
-            return [screen]
+            return [inset]
         }
 
         var result: [CGRect] = []
         result.reserveCapacity(count)
-        let masterWidth = floor(screen.width * Config.shared.masterRatio)
+        let masterWidth = floor(inset.width * Config.shared.masterRatio) - inner / 2
         result.append(CGRect(
-            x: screen.origin.x, y: screen.origin.y,
-            width: masterWidth, height: screen.height
+            x: inset.origin.x, y: inset.origin.y,
+            width: masterWidth, height: inset.height
         ))
 
         let stackCount = count - 1
-        let stackWidth = screen.width - masterWidth
-        let stackHeight = floor(screen.height / CGFloat(stackCount))
+        let stackX = inset.origin.x + masterWidth + inner
+        let stackWidth = inset.width - masterWidth - inner
+        let totalStackHeight = inset.height - CGFloat(stackCount - 1) * inner
+        let stackHeight = floor(totalStackHeight / CGFloat(stackCount))
 
         for i in 1..<count {
-            let y = screen.origin.y + CGFloat(i - 1) * stackHeight
+            let y = inset.origin.y + CGFloat(i - 1) * (stackHeight + inner)
             let h = (i == count - 1)
-                ? screen.height - CGFloat(i - 1) * stackHeight
+                ? inset.height - CGFloat(i - 1) * (stackHeight + inner)
                 : stackHeight
             result.append(CGRect(
-                x: screen.origin.x + masterWidth, y: y,
+                x: stackX, y: y,
                 width: stackWidth, height: h
             ))
         }

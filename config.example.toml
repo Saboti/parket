@@ -7,6 +7,12 @@
 # master window width ratio (0.0-1.0)
 # master_ratio = 0.55
 
+# gap between windows and screen edges (pixels)
+# outer_gap = 0
+
+# gap between windows (pixels)
+# inner_gap = 0
+
 # global modifier key: "option", "control", "command"
 # modifier = "option"
 
