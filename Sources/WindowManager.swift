@@ -36,7 +36,8 @@ struct TrackedWindow: Equatable {
     }
 
     func hideOffscreen(_ screen: CGRect) {
-        setPosition(CGPoint(x: screen.origin.x + 1 - screen.width, y: screen.maxY - 1))
+        let maxX = NSScreen.screens.map { WindowManager.screenRect(for: $0).maxX }.max() ?? screen.maxX
+        setPosition(CGPoint(x: maxX + 1, y: screen.maxY - 1))
     }
 
     func setFrame(_ rect: CGRect) {
