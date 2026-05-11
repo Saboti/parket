@@ -123,6 +123,22 @@ enum TilerTests {
             check(false, "invalid app rule config parses")
         }
 
+        do {
+            let focusedIndex = WorkspaceManager.focusedMonitorIndex(
+                preferredDisplayID: 2,
+                displayIDs: [1, 2]
+            )
+            check(focusedIndex == 1, "startup prefers primary display instead of leftmost screen")
+        }
+
+        do {
+            let focusedIndex = WorkspaceManager.focusedMonitorIndex(
+                preferredDisplayID: 9,
+                displayIDs: [1, 2]
+            )
+            check(focusedIndex == 0, "missing preferred display falls back to first monitor")
+        }
+
         return (passed, failed)
     }
 }

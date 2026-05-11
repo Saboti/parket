@@ -12,9 +12,17 @@ package final class WorkspaceManager {
 
     private init() {}
 
+    package static func focusedMonitorIndex(preferredDisplayID: CGDirectDisplayID, displayIDs: [CGDirectDisplayID]) -> Int {
+        guard !displayIDs.isEmpty else { return 0 }
+        return displayIDs.firstIndex(of: preferredDisplayID) ?? 0
+    }
+
     package func bootstrap() {
         rebuildMonitors()
-        focusedMonitorIndex = 0
+        focusedMonitorIndex = Self.focusedMonitorIndex(
+            preferredDisplayID: primaryDisplayID(),
+            displayIDs: monitors.map(\.displayID)
+        )
         let windows = WindowManager.allWindows()
         for window in windows {
             addWindow(window, defaultMonitor: monitorForWindow(window), deferRetile: true)
@@ -152,11 +160,11 @@ package final class WorkspaceManager {
             oldPrimary.resetState()
         }
 
-        if newPrimaryID != oldPrimaryID {
-            focusedMonitorIndex = monitors.firstIndex(where: { $0.displayID == newPrimaryID }) ?? 0
-        } else {
-            focusedMonitorIndex = monitors.firstIndex(where: { $0.displayID == focusedDisplayID }) ?? 0
-        }
+        let preferredDisplayID = newPrimaryID != oldPrimaryID ? newPrimaryID : focusedDisplayID
+        focusedMonitorIndex = Self.focusedMonitorIndex(
+            preferredDisplayID: preferredDisplayID,
+            displayIDs: monitors.map(\.displayID)
+        )
 
         for monitor in monitors {
             monitor.retile()
