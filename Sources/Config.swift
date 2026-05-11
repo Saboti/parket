@@ -106,6 +106,11 @@ package struct BuiltinBindings {
     var lastWorkspace: (key: UInt16, shift: Bool) = (Key.tab, false)
 }
 
+package struct AppRule: Equatable {
+    let bundleID: String
+    let workspaceIndex: Int
+}
+
 package struct Config {
     package static var shared = Config()
 
@@ -117,6 +122,7 @@ package struct Config {
     package var customBindings: [Binding] = [
         Binding(key: Key.return, shift: true, command: "open -n -a Terminal"),
     ]
+    package var appRules: [AppRule] = []
     package var bindings = BuiltinBindings()
 
     package private(set) var numberKeys: [UInt16: Int] = buildNumberKeys(count: 9)
@@ -125,6 +131,11 @@ package struct Config {
         var map: [UInt16: Int] = [:]
         for i in 0..<count { map[Key.numberKeys[i]] = i + 1 }
         return map
+    }
+
+    func workspaceIndex(for bundleID: String?, default activeWorkspace: Int) -> Int {
+        guard let bundleID else { return activeWorkspace }
+        return appRules.first(where: { $0.bundleID == bundleID })?.workspaceIndex ?? activeWorkspace
     }
 
     package static func load() {
@@ -146,6 +157,10 @@ package struct Config {
             return
         }
 
+        shared = parseToml(toml)
+    }
+
+    package static func parseToml(_ toml: [String: Any]) -> Config {
         var config = Config()
 
         if let count = toml["workspace_count"] as? Int, count >= 1, count <= 9 {
@@ -204,7 +219,11 @@ package struct Config {
             }
         }
 
-        shared = config
+        if let apps = toml["apps"] as? [[String: Any]] {
+            config.appRules = apps.compactMap { parseAppRule($0, workspaceCount: config.workspaceCount) }
+        }
+
+        return config
     }
 
     private static func parseKeyString(_ s: String) -> (key: UInt16?, shift: Bool) {
@@ -226,5 +245,24 @@ package struct Config {
             return
         }
         binding = (code, shift)
+    }
+
+    private static func parseAppRule(_ entry: [String: Any], workspaceCount: Int) -> AppRule? {
+        guard let bundleID = entry["bundle_id"] as? String,
+              !bundleID.isEmpty
+        else {
+            fputs("parket: app rule missing bundle_id\n", stderr)
+            return nil
+        }
+
+        guard let workspace = entry["workspace"] as? Int,
+              workspace >= 1,
+              workspace <= workspaceCount
+        else {
+            fputs("parket: invalid workspace for app rule '\(bundleID)'\n", stderr)
+            return nil
+        }
+
+        return AppRule(bundleID: bundleID, workspaceIndex: workspace - 1)
     }
 }

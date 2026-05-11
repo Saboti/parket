@@ -38,6 +38,10 @@ workspace_count = 9
 master_ratio = 0.55
 modifier = "option"    # "option", "control", or "command"
 
+[[apps]]
+bundle_id = "com.apple.Terminal"
+workspace = 2
+
 [bindings]
 focus_next = "j"
 focus_prev = "k"
@@ -59,6 +63,8 @@ command = "open -n -a Safari"
 ```
 
 custom bindings always include the modifier key (option by default). prefix with `shift+` to add shift to the combo.
+
+use `[[apps]]` to place matching apps onto a fixed workspace when their windows are adopted. `workspace` is 1-based in the config, and matching is done by bundle id such as `com.apple.Terminal`.
 
 to reload config at runtime, use the "Reload Config" option in the menubar menu.
 
