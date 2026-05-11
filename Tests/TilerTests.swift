@@ -80,6 +80,19 @@ enum TilerTests {
             }
         }
 
+        do {
+            let hidden = WindowManager.hiddenWindowPosition(for: screen, desktopMaxX: screen.maxX)
+            check(hidden.x == screen.maxX - 1, "hidden window keeps 1px visible on right edge")
+            check(hidden.y == screen.maxY - 1, "hidden window keeps 1px visible on bottom edge")
+        }
+
+        do {
+            let secondScreen = CGRect(x: 1920, y: 0, width: 2560, height: 1440)
+            let hidden = WindowManager.hiddenWindowPosition(for: screen, desktopMaxX: secondScreen.maxX)
+            check(hidden.x == secondScreen.maxX - 1, "hidden window uses rightmost desktop edge")
+            check(hidden.y == screen.maxY - 1, "hidden window stays aligned to source screen bottom")
+        }
+
         return (passed, failed)
     }
 }

@@ -1,6 +1,8 @@
 import AppKit
 import ApplicationServices
 
+private let hiddenWindowVisibleCorner: CGFloat = 1
+
 struct TrackedWindow: Equatable {
     let element: AXUIElement
     let pid: pid_t
@@ -37,7 +39,7 @@ struct TrackedWindow: Equatable {
 
     func hideOffscreen(_ screen: CGRect) {
         let maxX = NSScreen.screens.map { WindowManager.screenRect(for: $0).maxX }.max() ?? screen.maxX
-        setPosition(CGPoint(x: maxX + 1, y: screen.maxY - 1))
+        setPosition(WindowManager.hiddenWindowPosition(for: screen, desktopMaxX: maxX))
     }
 
     func setFrame(_ rect: CGRect) {
@@ -91,6 +93,13 @@ struct TrackedWindow: Equatable {
 }
 
 enum WindowManager {
+    static func hiddenWindowPosition(for screen: CGRect, desktopMaxX: CGFloat) -> CGPoint {
+        CGPoint(
+            x: desktopMaxX - hiddenWindowVisibleCorner,
+            y: screen.maxY - hiddenWindowVisibleCorner
+        )
+    }
+
     static func allWindows() -> [TrackedWindow] {
         var result: [TrackedWindow] = []
         for app in NSWorkspace.shared.runningApplications {
