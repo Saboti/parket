@@ -93,6 +93,36 @@ enum TilerTests {
             check(hidden.y == screen.maxY - 1, "hidden window stays aligned to source screen bottom")
         }
 
+        do {
+            let toml = try Toml.parse("""
+            workspace_count = 5
+
+            [[apps]]
+            bundle_id = "com.apple.Terminal"
+            workspace = 2
+            """)
+            let config = Config.parseToml(toml)
+            check(config.appRules == [AppRule(bundleID: "com.apple.Terminal", workspaceIndex: 1)], "app rules parse bundle id and workspace")
+            check(config.workspaceIndex(for: "com.apple.Terminal", default: 0) == 1, "app rule overrides active workspace")
+        } catch {
+            check(false, "app rule config parses")
+        }
+
+        do {
+            let toml = try Toml.parse("""
+            workspace_count = 3
+
+            [[apps]]
+            bundle_id = "com.apple.Terminal"
+            workspace = 4
+            """)
+            let config = Config.parseToml(toml)
+            check(config.appRules.isEmpty, "invalid app rule workspace is ignored")
+            check(config.workspaceIndex(for: "com.apple.Safari", default: 2) == 2, "unknown app falls back to active workspace")
+        } catch {
+            check(false, "invalid app rule config parses")
+        }
+
         return (passed, failed)
     }
 }

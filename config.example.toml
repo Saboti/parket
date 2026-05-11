@@ -36,3 +36,9 @@
 # [[custom]]
 # key = "shift+return"
 # command = "open -n -a Terminal"
+
+# launch matching apps directly into a workspace
+# use the app bundle identifier as the match key
+# [[apps]]
+# bundle_id = "com.apple.Terminal"
+# workspace = 2

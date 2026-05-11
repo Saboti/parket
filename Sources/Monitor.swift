@@ -48,13 +48,26 @@ package final class Monitor {
         }
     }
 
-    func insertWindow(_ window: TrackedWindow) {
-        for ws in workspaces where ws.contains(window) { return }
-        workspaces[active].insert(window, at: 0)
+    @discardableResult
+    func insertWindow(_ window: TrackedWindow, into workspaceIndex: Int? = nil) -> Bool {
+        for ws in workspaces where ws.contains(window) { return false }
+        let targetWorkspace = workspaceIndex ?? active
+        workspaces[targetWorkspace].insert(window, at: 0)
+        return true
     }
 
-    func addWindow(_ window: TrackedWindow) {
-        insertWindow(window)
+    func addWindow(_ window: TrackedWindow, into workspaceIndex: Int? = nil, deferRetile: Bool = false) {
+        let targetWorkspace = workspaceIndex ?? active
+        guard insertWindow(window, into: targetWorkspace) else { return }
+
+        guard targetWorkspace == active else {
+            window.hideOffscreen(WindowManager.screenRect(for: self.screen))
+            return
+        }
+
+        if deferRetile {
+            return
+        }
         scheduleRetile()
     }
 

@@ -17,7 +17,7 @@ package final class WorkspaceManager {
         focusedMonitorIndex = 0
         let windows = WindowManager.allWindows()
         for window in windows {
-            monitorForWindow(window).insertWindow(window)
+            addWindow(window, defaultMonitor: monitorForWindow(window), deferRetile: true)
         }
         for monitor in monitors {
             monitor.retile()
@@ -43,7 +43,7 @@ package final class WorkspaceManager {
 
     func addWindow(_ window: TrackedWindow) {
         for monitor in monitors where monitor.containsWindow(window) { return }
-        focusedMonitor.addWindow(window)
+        addWindow(window, defaultMonitor: focusedMonitor)
         StatusBar.shared.update()
     }
 
@@ -195,6 +195,14 @@ package final class WorkspaceManager {
     private func primaryDisplayID() -> CGDirectDisplayID {
         guard !monitors.isEmpty else { return 0 }
         return monitors.first(where: { $0.screen == NSScreen.main })?.displayID ?? monitors[0].displayID
+    }
+
+    private func addWindow(_ window: TrackedWindow, defaultMonitor: Monitor, deferRetile: Bool = false) {
+        let workspaceIndex = Config.shared.workspaceIndex(
+            for: NSRunningApplication(processIdentifier: window.pid)?.bundleIdentifier,
+            default: defaultMonitor.active
+        )
+        defaultMonitor.addWindow(window, into: workspaceIndex, deferRetile: deferRetile)
     }
 
     private func monitorForWindow(_ window: TrackedWindow) -> Monitor {
