@@ -23,15 +23,7 @@ let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
 
 guard checkAccessibility() else {
-    let alert = NSAlert()
-    alert.messageText = "parket requires Accessibility permission"
-    alert.informativeText = "grant access in System Settings -> Privacy & Security -> Accessibility, then relaunch parket."
-    alert.alertStyle = .warning
-    alert.addButton(withTitle: "open System Settings")
-    alert.addButton(withTitle: "quit")
-    if alert.runModal() == .alertFirstButtonReturn {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
-    }
+    fputs("parket: accessibility permission required\n", stderr)
     exit(1)
 }
 
