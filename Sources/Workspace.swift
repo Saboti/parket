@@ -51,8 +51,9 @@ package final class WorkspaceManager {
 
     func addWindow(_ window: TrackedWindow) {
         for monitor in monitors where monitor.containsWindow(window) { return }
-        addWindow(window, defaultMonitor: focusedMonitor)
-        StatusBar.shared.update()
+        if addWindow(window, defaultMonitor: focusedMonitor) {
+            StatusBar.shared.update()
+        }
     }
 
     func removeWindow(pid: pid_t) {
@@ -205,12 +206,17 @@ package final class WorkspaceManager {
         return monitors.first(where: { $0.screen == NSScreen.main })?.displayID ?? monitors[0].displayID
     }
 
-    private func addWindow(_ window: TrackedWindow, defaultMonitor: Monitor, deferRetile: Bool = false) {
+    @discardableResult
+    private func addWindow(_ window: TrackedWindow, defaultMonitor: Monitor, deferRetile: Bool = false) -> Bool {
+        let bundleID = NSRunningApplication(processIdentifier: window.pid)?.bundleIdentifier
+        guard !Config.shared.isFloatingApp(bundleID) else { return false }
+
         let workspaceIndex = Config.shared.workspaceIndex(
-            for: NSRunningApplication(processIdentifier: window.pid)?.bundleIdentifier,
+            for: bundleID,
             default: defaultMonitor.active
         )
         defaultMonitor.addWindow(window, into: workspaceIndex, deferRetile: deferRetile)
+        return true
     }
 
     private func monitorForWindow(_ window: TrackedWindow) -> Monitor {

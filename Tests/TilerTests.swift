@@ -102,7 +102,7 @@ enum TilerTests {
             workspace = 2
             """)
             let config = Config.parseToml(toml)
-            check(config.appRules == [AppRule(bundleID: "com.apple.Terminal", workspaceIndex: 1)], "app rules parse bundle id and workspace")
+            check(config.appRules == [AppRule(bundleID: "com.apple.Terminal", workspaceIndex: 1, floating: false)], "app rules parse bundle id and workspace")
             check(config.workspaceIndex(for: "com.apple.Terminal", default: 0) == 1, "app rule overrides active workspace")
         } catch {
             check(false, "app rule config parses")
@@ -121,6 +121,34 @@ enum TilerTests {
             check(config.workspaceIndex(for: "com.apple.Safari", default: 2) == 2, "unknown app falls back to active workspace")
         } catch {
             check(false, "invalid app rule config parses")
+        }
+
+        do {
+            let toml = try Toml.parse("""
+            [[apps]]
+            bundle_id = "com.apple.systempreferences"
+            floating = true
+            """)
+            let config = Config.parseToml(toml)
+            check(config.appRules == [AppRule(bundleID: "com.apple.systempreferences", workspaceIndex: nil, floating: true)], "floating app rule parses")
+            check(config.isFloatingApp("com.apple.systempreferences"), "floating app lookup matches bundle id")
+            check(config.workspaceIndex(for: "com.apple.systempreferences", default: 2) == 2, "floating app leaves workspace unchanged")
+        } catch {
+            check(false, "floating app rule config parses")
+        }
+
+        do {
+            let toml = try Toml.parse("""
+            [[apps]]
+            bundle_id = "com.apple.systempreferences"
+            workspace = 2
+            floating = true
+            """)
+            let config = Config.parseToml(toml)
+            check(config.appRules == [AppRule(bundleID: "com.apple.systempreferences", workspaceIndex: nil, floating: true)], "floating app rule ignores workspace")
+            check(config.workspaceIndex(for: "com.apple.systempreferences", default: 1) == 1, "floating app conflict still leaves workspace unchanged")
+        } catch {
+            check(false, "floating workspace conflict config parses")
         }
 
         do {

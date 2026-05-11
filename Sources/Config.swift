@@ -108,7 +108,8 @@ package struct BuiltinBindings {
 
 package struct AppRule: Equatable {
     let bundleID: String
-    let workspaceIndex: Int
+    let workspaceIndex: Int?
+    let floating: Bool
 }
 
 package struct Config {
@@ -133,9 +134,18 @@ package struct Config {
         return map
     }
 
+    func appRule(for bundleID: String?) -> AppRule? {
+        guard let bundleID else { return nil }
+        return appRules.first(where: { $0.bundleID == bundleID })
+    }
+
+    func isFloatingApp(_ bundleID: String?) -> Bool {
+        appRule(for: bundleID)?.floating ?? false
+    }
+
     func workspaceIndex(for bundleID: String?, default activeWorkspace: Int) -> Int {
-        guard let bundleID else { return activeWorkspace }
-        return appRules.first(where: { $0.bundleID == bundleID })?.workspaceIndex ?? activeWorkspace
+        guard let rule = appRule(for: bundleID), !rule.floating else { return activeWorkspace }
+        return rule.workspaceIndex ?? activeWorkspace
     }
 
     package static func load() {
@@ -255,14 +265,23 @@ package struct Config {
             return nil
         }
 
+        let floating = entry["floating"] as? Bool ?? false
+
+        if floating {
+            if entry["workspace"] != nil {
+                fputs("parket: ignoring workspace for floating app rule '\(bundleID)'\n", stderr)
+            }
+            return AppRule(bundleID: bundleID, workspaceIndex: nil, floating: true)
+        }
+
         guard let workspace = entry["workspace"] as? Int,
               workspace >= 1,
               workspace <= workspaceCount
         else {
-            fputs("parket: invalid workspace for app rule '\(bundleID)'\n", stderr)
+            fputs("parket: app rule '\(bundleID)' requires workspace or floating = true\n", stderr)
             return nil
         }
 
-        return AppRule(bundleID: bundleID, workspaceIndex: workspace - 1)
+        return AppRule(bundleID: bundleID, workspaceIndex: workspace - 1, floating: false)
     }
 }

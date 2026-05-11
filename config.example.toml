@@ -42,3 +42,9 @@
 # [[apps]]
 # bundle_id = "com.apple.Terminal"
 # workspace = 2
+
+# keep matching apps unmanaged / floating
+# useful for apps like System Settings that should stay outside Parket workspaces
+# [[apps]]
+# bundle_id = "com.apple.systempreferences"
+# floating = true

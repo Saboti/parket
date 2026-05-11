@@ -42,6 +42,10 @@ modifier = "option"    # "option", "control", or "command"
 bundle_id = "com.apple.Terminal"
 workspace = 2
 
+[[apps]]
+bundle_id = "com.apple.systempreferences"
+floating = true
+
 [bindings]
 focus_next = "j"
 focus_prev = "k"
@@ -65,6 +69,10 @@ command = "open -n -a Safari"
 custom bindings always include the modifier key (option by default). prefix with `shift+` to add shift to the combo.
 
 use `[[apps]]` to place matching apps onto a fixed workspace when their windows are adopted. `workspace` is 1-based in the config, and matching is done by bundle id such as `com.apple.Terminal`.
+
+set `floating = true` on an app rule to keep that app unmanaged by Parket. those windows are not added to Parket workspaces, are not tiled, and are not hidden when switching workspaces. if `floating = true` and `workspace = N` are both set, Parket ignores `workspace` for that rule.
+
+some transient popups and sheets are already ignored automatically because Parket only manages standard windows. `floating = true` is for normal app windows you want to keep outside the tiling/workspace logic, such as System Settings.
 
 to reload config at runtime, use the "Reload Config" option in the menubar menu.
 
