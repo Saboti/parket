@@ -101,6 +101,25 @@ package final class WorkspaceManager {
         StatusBar.shared.update()
     }
 
+    func focusAppWorkspace(pid: pid_t) {
+        for (monitorIndex, monitor) in monitors.enumerated() {
+            for (wsIndex, workspace) in monitor.workspaces.enumerated() {
+                guard workspace.contains(where: { $0.pid == pid }) else { continue }
+                guard wsIndex != monitor.active || monitorIndex != focusedMonitorIndex else { return }
+                if monitorIndex != focusedMonitorIndex {
+                    focusedMonitor.saveFocusedIndex()
+                    focusedMonitorIndex = monitorIndex
+                }
+                if wsIndex != focusedMonitor.active {
+                    focusedMonitor.switchTo(wsIndex)
+                } else {
+                    StatusBar.shared.update()
+                }
+                return
+            }
+        }
+    }
+
     func moveWindowToMonitor(offset: Int) {
         guard monitors.count > 1 else { return }
         guard let focused = WindowManager.focusedWindow() else { return }

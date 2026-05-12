@@ -25,6 +25,15 @@ package final class WindowObserver {
         }
 
         nc.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil, queue: .main
+        ) { note in
+            guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+
+            WorkspaceManager.shared.focusAppWorkspace(pid: app.processIdentifier)
+        }
+
+        nc.addObserver(
             forName: NSWorkspace.didTerminateApplicationNotification,
             object: nil, queue: .main
         ) { note in
